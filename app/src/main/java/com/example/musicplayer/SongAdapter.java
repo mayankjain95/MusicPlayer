@@ -44,7 +44,8 @@ public class SongAdapter extends BaseAdapter {
         TextView songView = (TextView)songLayout.findViewById(R.id.song_title);
         TextView artistView = (TextView)songLayout.findViewById(R.id.song_artist);
         Song currentSong = songs.get(position);
-        songView.setText(currentSong.getArtist());
+        songView.setText(currentSong.getTitle());
+        artistView.setText(currentSong.getArtist());
         songLayout.setTag(position);
         return songLayout;
     }
