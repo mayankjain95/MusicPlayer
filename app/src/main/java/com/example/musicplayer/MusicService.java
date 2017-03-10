@@ -66,7 +66,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return musicBind;
     }
 
     @Override
