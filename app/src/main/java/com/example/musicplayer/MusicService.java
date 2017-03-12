@@ -111,11 +111,15 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
-
+        if(player.getCurrentPosition()>0){
+            mediaPlayer.reset();
+            playNext();
+        }
     }
 
     @Override
     public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
+        mediaPlayer.reset();
         return false;
     }
 
