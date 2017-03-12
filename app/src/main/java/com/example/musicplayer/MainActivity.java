@@ -11,15 +11,17 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.MediaController;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements MediaController.MediaPlayerControl {
     //song list variables
     private ArrayList<Song> songList;
     private ListView songView;
@@ -30,15 +32,19 @@ public class MainActivity extends AppCompatActivity {
     //to keep track of whether the Activity class is bound to the Service class or not
     private boolean musicBound = false;
 
+    private MusicController musicController;;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         songView = (ListView) findViewById(R.id.song_list);
         songList = new ArrayList<Song>();
         getSongList();
         sortSongs();
         setSongAdapter();
+        setController();
 
     }
 
@@ -107,12 +113,46 @@ public class MainActivity extends AppCompatActivity {
         musicService.setSong(Integer.parseInt(view.getTag().toString()));
         musicService.playSong();
     }
+    private void setController(){
+        musicController = new MusicController(this);
+        musicController.setPrevNextListeners(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                playNext();
+            }
+        },new View.OnClickListener(){
+            @Override
+            public void onClick(View view){
+                playPrev();
+            }
+        });
+        musicController.setMediaPlayer(this);
+        musicController.setAnchorView(findViewById(R.id.song_list));
+        musicController.setEnabled(true);
+    }
+
+    private void playPrev() {
+        musicService.playPrev();
+        musicController.show(0);
+    }
+
+    private void playNext() {
+        musicService.playNext();
+        musicController.show(0);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_shuffle:
                 //shuffle
+                musicService.setShuffle();
                 break;
             case R.id.action_end:
                 stopService(playIntent);
@@ -128,5 +168,67 @@ public class MainActivity extends AppCompatActivity {
         stopService(playIntent);
         musicService = null;
         super.onDestroy();
+    }
+
+    @Override
+    public void start() {
+        musicService.go();
+    }
+
+    @Override
+    public void pause() {
+        musicService.pausePlayer();
+    }
+
+    @Override
+    public int getDuration() {
+        if(musicService!=null && musicBound && musicService.isPng())
+            return musicService.getDur();
+        else return 0;
+    }
+
+    @Override
+    public int getCurrentPosition() {
+        if(musicService!=null && musicBound && musicService.isPng())
+            return musicService.getPosn();
+        else return 0;
+    }
+
+    @Override
+    public void seekTo(int i) {
+        musicService.seek(i);
+
+    }
+
+    @Override
+    public boolean isPlaying() {
+        if(musicService!=null && musicBound)
+            return musicService.isPng();
+        return false;
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        return 0;
+    }
+
+    @Override
+    public boolean canPause() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekBackward() {
+        return true;
+    }
+
+    @Override
+    public boolean canSeekForward() {
+        return true;
+    }
+
+    @Override
+    public int getAudioSessionId() {
+        return 0;
     }
 }
